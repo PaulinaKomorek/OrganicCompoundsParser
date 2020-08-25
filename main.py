@@ -1,5 +1,5 @@
 from OrganicCompoundsParser import OrganicCompoundsParser
 
 
-test=OrganicCompoundsParser("3-ethyl-2,5-dimethylhexane")
+test=OrganicCompoundsParser("benzene")
 print(test.parse())

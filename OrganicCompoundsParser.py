@@ -5,14 +5,9 @@ class OrganicCompoundsParser(object):
     mutlipliers = ["di",  "tri",  "tetra", "penta", "hexa", "hepta", "octa", "nona", "deca", "undeca",
                    "dodeca", "trideca", "tetradeca", "pentadeca", "hexadeca", "heptadeca", "octadeca", "nonadeca"]
 
-    suffixes = {"ane": lambda c: {"C":c, "H":2*c+2} , "ene": lambda c: {"C":c, "H":2*c}, "yne": lambda c: {"C":c, "H":2*c-2}, "yl": lambda c: {"C": c, "H":2*c+1}, "anol": lambda c:{"C":c, "H":2*c+2, "O":1}}
-    #, "ol",  "al", "one", "oic acid", "carboxylic acid",
-    #           "oate", "ether", "amide", "amine", "imine", "benzene", "thiol", "phosphine", "arsine"}
-    prefixes = ["cyclo", "hydroxy", "oxo", "carboxy", "oxycarbonyl", "anoyloxy", "formyl",
-                "oxy", "amido", "amino", "imino", "phenyl",  "mercapto", "phosphino", "arsino", "fluoro", "chloro", "bromo", "iodo"]
-
-    # Note that akyles aren"t present in these lists
-
+    suffixes = {"ane": lambda c: {"C":c, "H":2*c+2} , "benzene": lambda c: {"C": 6, "H": 12}, "ene": lambda c: {"C":c, "H":2*c}, "yne": lambda c: {"C":c, "H":2*c-2}, "yl": lambda c: {"C": c, "H":2*c+1}, "anol": lambda c:{"C":c, "H":2*c+2, "O":1}}
+    cyclosuffixes = {"ane": lambda c: {"C":c, "H":2*c} , "ene": lambda c: {"C":c, "H":2*c-4}, "yne": lambda c: {"C":c, "H":2*c-8}, "yl": lambda c: {"C": c, "H":2*c-1}, "anol": lambda c:{"C":c, "H":2*c, "O":1}}
+    
     def __init__(self, name):
         self.name = name
 
@@ -36,19 +31,23 @@ class OrganicCompoundsParser(object):
             output["C"]=output["C"]+i["C"]
             output["H"]=output["H"]+i["H"]
             output["O"]=output["O"]+i.get("O", 0)
+        if output["O"]==0:
+            output.pop("O", None)
         output["H"]= output["H"]-(len(name_fragments)-1)
         return output
         
 
 
     def parse_element(self, name):
-        sufix=0
-        method=None
+        sufix=""
         for i in self.suffixes:
             if name.endswith(i):
                 sufix=i
-                method=self.suffixes[i]
+                break
 
         for i in range(0, len(self.radicals)):
             if self.radicals[i]+sufix==name:
-                return method(i+1)
+                return self.suffixes[sufix](i+1)
+            elif "cyclo" + self.radicals[i]+sufix==name:
+                return self.cyclosuffixes[sufix](i+1)
+        return self.suffixes[sufix](0)
